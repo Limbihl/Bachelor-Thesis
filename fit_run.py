@@ -1,4 +1,4 @@
-import xrd_models
+import xrd_math_models
 import constants as const
 import read_raw_to_cvs
 import matplotlib.pyplot as plt
