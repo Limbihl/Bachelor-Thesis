@@ -32,7 +32,8 @@ def calculate_lattice_parameter(two_theta_deg, h, k, l, wavelength):
 # ==========================================
 
 # Constants (Chromium K-Alpha 1)
-lam_k1 = 2.28970  # Angstrom
+LAM_K1 = const.LAM_K1
+
 
 # Result from your fit script (copy/paste from console)
 peak_position = 47.91236  # Your x01_deg value
@@ -47,7 +48,7 @@ l_in = 0
 # CALCULATION & OUTPUT
 # ==========================================
 
-a_result, d_result = calculate_lattice_parameter(peak_position, h_in, k_in, l_in, lam_k1)
+a_result, d_result = calculate_lattice_parameter(peak_position, h_in, k_in, l_in, LAM_K1)
 
 print("-" * 40)
 print(f"INPUT:")

@@ -5,7 +5,7 @@ import os
 
 
 # Specify the folder containing your .raw files
-folder_path = r"C:\Users\ludig\OneDrive - TUM\Dokumente\Desktop\Testordner"
+folder_path = r"C:\Users\ludig\OneDrive - TUM\Dokumente\Desktop\Studium\7 Semester\BA Arbeit\FRM 2 Dateien\FOPRA NaCl XRD Daten\NaCl Peaks (111) (200) (220) (311)"
 
 
 class ArrayDesc:
