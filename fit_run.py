@@ -9,6 +9,57 @@ import os
 file_path_cvs = r"C:\Users\ludig\OneDrive - TUM\Dokumente\Desktop\Studium\7 Semester\BA Arbeit\FRM 2 Dateien\FOPRA NaCl XRD Daten\NaCl Peaks (111) (200) (220) (311)\2069_00461483.csv"
 
 
+def plot_fit_results(x, y, y_fit, y_ka1, y_ka2, residuals, params, fit_bounds):
+    """
+    Creates a professional plot showing the Data, Doublet Fit, and Residuals.
+
+    Parameters:
+    - x, y: The observed data (ROI).
+    - y_fit: The total calculated model.
+    - y_ka1, y_ka2: The individual split peaks (for visualization).
+    - residuals: y - y_fit.
+    - params: The optimized parameters [A, x0, fwhm, eta, m, b].
+    - fit_bounds: Tuple (min, max) for the x-axis limits.
+    """
+
+    # Unpack parameters for the title
+    A1, x01, fwhm, eta, m, b = params
+    fit_min, fit_max = fit_bounds
+
+    # Create the figure with two subplots (Top: Fit, Bottom: Residuals)
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,
+                                   gridspec_kw={'height_ratios': [3, 1]},
+                                   figsize=(8, 6))
+
+    # --- Top Plot: Data & Fit ---
+    ax1.scatter(x, y, s=15, color='black', alpha=0.6, label='ROI Data')
+    ax1.plot(x, y_fit, color='red', linewidth=2, label='Doublet Fit')
+
+    # Plot individual components (dashed lines)
+    ax1.plot(x, y_ka1, color='green', linestyle='--', linewidth=1, alpha=0.7, label='Kα1')
+    ax1.plot(x, y_ka2, color='blue', linestyle='--', linewidth=1, alpha=0.7, label='Kα2')
+
+    ax1.set_ylabel("Intensity [Counts]")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    ax1.set_title(f"Fit Result (x0={x01:.3f}°, FWHM={fwhm:.3f}°)")
+
+    # --- Bottom Plot: Residuals ---
+    ax2.scatter(x, residuals, s=10, color='blue', alpha=0.6)
+    ax2.axhline(0, color='black', linestyle='-', linewidth=1)  # Zero line
+    ax2.set_ylabel("Residuals")
+    ax2.set_xlabel("2Theta [deg]")
+    ax2.grid(True, alpha=0.3)
+
+    # Layout adjustments
+    plt.xlim(fit_min - 0.2, fit_max + 0.2)  # Zoom to ROI + margin
+    plt.subplots_adjust(hspace=0.05)  # Reduce space between plots
+
+    # Important: block=True ensures the script pauses until you close the window
+    print("--> Displaying plot. Close window to continue...")
+    plt.show(block=True)
+
+
 
 def load_csv(file_path):
     angle, intensity = np.loadtxt(
@@ -138,60 +189,41 @@ result = xrd_math_models.fit_doublet_peaks(x, y, LAM_K1, LAM_K2, RATIO, initial_
 params_opt = result.x
 
 # ---------------------------------------------------------
-# 5. CALCULATION OF RESULTS & RESIDUALS
+# 5. CALCULATION OF RESULTS & CURVES
 # ---------------------------------------------------------
-# Recalculate the model with optimal parameters
+A1, x01, fwhm, eta, m, b = params_opt
+
+# 1. Calculate the full model curve with the optimal parameters
 y_fit = xrd_math_models.doublet_model_f(params_opt, x, LAM_K1, LAM_K2, RATIO)
 
-# CALCULATE RESIDUALS (Messung - Modell)
+# 2. Calculate Residuals (Observed - Model)
 residuals = y - y_fit
 
-# Calculate individual components for plotting (optional)
-A1, x01, fwhm, eta, m, b = params_opt
+# 3. Calculate individual components for visualization
+#    (We need to calculate x02 physically to draw the blue line correctly)
 theta1 = np.deg2rad(x01 / 2.0)
 theta2 = np.arcsin(np.sin(theta1) * (LAM_K2 / LAM_K1))
 x02 = np.rad2deg(2*theta2)
-background = m*x + b
-y_ka1 = xrd_math_models.pseudo_voigt_f(x, A1, x01, fwhm, eta) + background
-y_ka2 = xrd_math_models.pseudo_voigt_f(x, A1*RATIO, x02, fwhm, eta) + background
 
-# Error Calculation
+
+y_ka1_only = xrd_math_models.pseudo_voigt_f(x, A1, x01, fwhm, eta) + xrd_math_models.background_f(x,m,b)
+y_ka2_only = xrd_math_models.pseudo_voigt_f(x, A1 * RATIO, x02, fwhm, eta) + xrd_math_models.background_f(x,m,b)
+
+# 4. Print Statistics
 rmse = np.sqrt(np.mean(residuals**2))
+print("-" * 40)
 print(f"Optimization Success: {result.success}")
-print(f"Params [A, x0, fwhm, eta, m, b]: {np.round(params_opt, 4)}")
+print(f"Optimal Params [A, x0, fwhm, eta, m, b]: {np.round(params_opt, 4)}")
 print(f"RMSE (Average Error): {rmse:.4f}")
+print("-" * 40)
 
 # ---------------------------------------------------------
-# 6. PROFESSIONAL PLOTTING (Residual Plot)
+# 6. PLOTTING
 # ---------------------------------------------------------
-fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,
-                               gridspec_kw={'height_ratios': [3, 1]},
-                               figsize=(8, 6))
-
-# --- Top Plot: Data & Fit ---
-
-# Plot ROI data in black
-ax1.scatter(x, y, s=15, color='black', alpha=0.6, label='ROI Data')
-# Plot Fit
-ax1.plot(x, y_fit, color='red', linewidth=2, label='Doublet Fit')
-# Plot components (dashed)
-ax1.plot(x, y_ka1, color='green', linestyle='--', linewidth=1, alpha=0.7, label='Kα1')
-ax1.plot(x, y_ka2, color='blue', linestyle='--', linewidth=1, alpha=0.7, label='Kα2')
-
-ax1.set_ylabel("Intensity [Counts]")
-ax1.legend()
-ax1.grid(True, alpha=0.3)
-ax1.set_title(f"Fit Result (x0={x01:.3f}°, FWHM={fwhm:.3f}°)")
-
-# --- Bottom Plot: Residuals ---
-ax2.scatter(x, residuals, s=10, color='blue', alpha=0.6)
-ax2.axhline(0, color='black', linestyle='-', linewidth=1) # Zero line
-ax2.set_ylabel("Residuals")
-ax2.set_xlabel("2Theta [deg]")
-ax2.grid(True, alpha=0.3)
-
-# Layout adjustments
-plt.xlim(fit_window_min - 0.2, fit_window_max + 0.2) # Zoom to ROI + a bit margin
-plt.subplots_adjust(hspace=0.05) # Less space between plots
-plt.show()
+# Now we just call the function!
+plot_fit_results(
+    x, y, y_fit, y_ka1_only, y_ka2_only, residuals,
+    params=params_opt,
+    fit_bounds=(fit_window_min, fit_window_max)
+)
 
