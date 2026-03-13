@@ -6,8 +6,7 @@ import numpy as np
 import os
 
 #CVS file path
-file_path_cvs = r"C:\Users\ludig\OneDrive - TUM\Dokumente\Desktop\Studium\7 Semester\BA Arbeit\FRM 2 Dateien\FOPRA NaCl XRD Daten\NaCl Peaks (111) (200) (220) (311)\2069_00461483.csv"
-
+file_path_cvs = r"C:\Users\ludig\OneDrive - TUM\Dokumente\Desktop\Studium\7 Semester\BA Arbeit\FRM 2 Dateien\FOPRA NaCl XRD Daten\NaCl Peaks 500s belichtung\2063_00461465.csv"
 
 def plot_fit_results(x, y, y_fit, y_ka1, y_ka2, residuals, params, fit_bounds):
     """
@@ -107,7 +106,7 @@ def determine_roi_from_header(csv_file_path, window):
 
     try:
         # Read the header to get the motor position (tths_value)
-        _, tths_header, _ = read_raw_to_cvs.read_raw_file(file_path_raw)
+        _, tths_header, _ = read_raw_to_cvs.extract_pixel_data_and_metadata_from_raw(file_path_raw)
 
         print(f"--> Header Info: Motor position was at {tths_header}°")
 
@@ -160,12 +159,12 @@ RATIO  = const.INTENSITY_RATIO  # I(Kα2)/I(Kα1)
 x0_guess_default = tths_header # use the tths_header position as intitial guess for x0
 
 
-A_guess= 600 # Amplitude (its the total amplitude - the background)
+A_guess= 180 # Amplitude (its the total amplitude - the background)
 x0_guess= x0_guess_default  # Peak position
 fwhm_guess= 0.2   # Full Width at Half Maximum
 eta_guess = 0.5 # superposition parameter (eta=1 -> only Lorentz)
-m_guess = -0.1  # linear background slope
-b_guess = 1000  # background offset
+m_guess = 0  # linear background slope
+b_guess = 130  # background offset
 
 initial_guess_doublet= [A_guess, x0_guess, fwhm_guess, eta_guess, m_guess, b_guess]
 

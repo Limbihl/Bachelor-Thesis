@@ -61,7 +61,7 @@ print(f"  Lattice parameter a:    {a_result:.5f} A")
 print("-" * 40)
 
 # Optional: Comparison with literature
-lit_val = 5.6402
+"""lit_val = 5.6402
 deviation = abs(a_result - lit_val) / lit_val * 100
 print(f"  Deviation from Lit.:    {deviation:.4f} %")
-print("-" * 40)
+print("-" * 40)"""
