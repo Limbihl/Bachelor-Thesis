@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 from scipy import optimize
 
 """
@@ -74,7 +72,7 @@ def cost_n_peaks(params, x , y, n_peaks=1 ):
 
 def fit_n_peaks_f(x, y, initial_guess, bounds, n_peaks=1):
     result = optimize.minimize(
-        cost_n_peaks(), initial_guess,
+        cost_n_peaks, initial_guess,
         args=(x, y, n_peaks),
         bounds=bounds
     )

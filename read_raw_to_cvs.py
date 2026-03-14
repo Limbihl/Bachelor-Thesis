@@ -1,6 +1,6 @@
-import numpy as np
-from numpy import dtype
 import os
+
+import numpy as np
 
 
 
@@ -46,6 +46,8 @@ def extract_pixel_data_and_metadata_from_raw(file_path):
     with open(file_path, 'rb') as f:
         c = f.read()
         header_start = c.find(b'\n### NICOS Device snapshot')
+        if header_start < 0:
+            raise ValueError(f"Could not locate NICOS header in raw file: {file_path}")
         # errors='ignore' prevents crashes with strange characters
         header = c[header_start:].decode('utf_8', errors='ignore')
 
@@ -56,7 +58,7 @@ def extract_pixel_data_and_metadata_from_raw(file_path):
             try:
                 val = line.split(':')[1].strip().split()[0]
                 tths_value = float(val)
-            except:
+            except (IndexError, ValueError):
                 pass
 
         # Extract ysd (radius R)
@@ -64,14 +66,14 @@ def extract_pixel_data_and_metadata_from_raw(file_path):
             try:
                 val = line.split(':')[1].strip().split()[0]
                 ysd_value = float(val)
-            except:
+            except (IndexError, ValueError):
                 pass
 
     # --- Read Data ---
     # data is the vektor with the 1280 intensity values
     for l in header.split('\n'):
         if l.startswith('ArrayDesc'):
-            a = eval(l)
+            a = eval(l, {"ArrayDesc": ArrayDesc}, {})
             data = np.fromfile(file_path, a.dtype, np.prod(a.shape)).reshape(a.shape)
             return data, tths_value, ysd_value
 

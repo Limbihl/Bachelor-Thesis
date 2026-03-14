@@ -1,5 +1,6 @@
 import os
-import read_raw_to_cvs  # Importing your beautifully refactored conversion script
+
+import read_raw_to_cvs
 
 
 def load_and_convert_frm2_data(dat_filenames, data_folder_path):
@@ -78,11 +79,13 @@ def load_and_convert_frm2_data(dat_filenames, data_folder_path):
                         psi_list.append(psi_val)
                         csv_list.append(csv_filename)
 
-        # Save to our "Aktenordner"
+        # Keep the block sorted by psi so later analysis and plotting are deterministic.
         if phi_value is not None:
+            paired_measurements = sorted(zip(psi_list, csv_list), key=lambda item: item[0])
             measurement_data[phi_value] = {
-                'psi': psi_list,
-                'csv_files': csv_list
+                'phi': phi_value,
+                'psi': [psi for psi, _ in paired_measurements],
+                'csv_files': [csv for _, csv in paired_measurements],
             }
 
     return measurement_data
